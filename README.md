@@ -8,22 +8,25 @@ dCity Dev Documentation
 1 dCity Dev Documentation
 ===
 
-
 [TOC]
 
 ## 1.1 ChangesLog
 
 18-05-2020 - Decrease on education if not enough workers 2.9 2.11
+
 18-05-2020 - BEER and WEED production 3.6 and 3.7
+
 18-05-2020 - Simplified Police Tax 3.5
+
 17-05-2020 - 3.10 dCity logs
+
 17-05-2020 - Law Firm effect in 2.6 + 2.11 Card Bonuses
 
 ## 1.2 General Information
 
 All game data is stored on hive-engine, so you will need to query engine to build up your interface/application. Basic py example:
 
-```python=
+```py
 def engine_everything(contract, table, query, offset):
     url = 'https://api.hive-engine.com/rpc/contracts'
     params = {'contract':contract, 'table':table, 'query':query, 'limit':1000, 'offset':offset, 'indexes':[]}
@@ -39,13 +42,14 @@ def engine_everything(contract, table, query, offset):
 query1 = {"account": "gerber"}
 my_city = engine_everything("nft", "CITYinstances", query1, 0)
 ```
+
 as you can see there are 3 main variables you going to use to get data:
 * contract
 * table
 * query
 
 More examples:
-```python=
+```py
 tradehistory24h = engine_everything("nftmarket", "CITYtradesHistory", {}, 0)
 NFTs_by_property = engine_everything("nft", "CITYinstances", {"properties.name":"Basic Home"}, 0)
 ```
@@ -59,16 +63,16 @@ NFTs_by_property = engine_everything("nft", "CITYinstances", {"properties.name":
 To display City for a player with proper numbers you need to collect data from 3 sources:
 
 actual CITY NFT collection for player:
-```python=
+```py
 my_city = engine_everything("nft", "CITYinstances", {"account":username}, 0)
 ```
 
 Government rules for game:
-```python=
+```py
 gov_api = engine_everything("nft", "APIinstances", {"_id":1}, 0)
 ```
 Player Card in Api for events:
-```python=
+```py
 player_api = engine_everything("nft", "APIinstances", {"properties.x":username}, 0)
 ```
 
@@ -84,7 +88,7 @@ You already have all the NFT's for player, you can sum it by property for base n
 Creativity and education are strings cause mistake in creation process :( that can't be reversed.
 These numbers are not a final numbers for city just base for calculation.
 
-```python=
+```py
 population = sum([b['properties']['population'] for b in my_city if 'population' in b['properties']])
 popularity = sum([b['properties']['popularity'] for b in my_city if 'popularity' in b['properties']])
 income = sum([b['properties']['income'] for b in my_city if 'income' in b['properties']])
@@ -94,7 +98,7 @@ education = sum([float(b['properties']['education']) for b in my_city if 'educat
 
 Good thing is also to build summary on assets, as it can be useful for applying multipliers:
 
-```python=
+```py
 summary = {}
 for asset in my_city:
     if asset['properties']['name'] in summary:
@@ -105,7 +109,7 @@ for asset in my_city:
 2.3 Game Multipliers
 ---
 All the multipliers:
-```python=
+```py
 education_multiplier = 1
 creativity_multiplier = 1
 promote_eco = False
@@ -116,7 +120,7 @@ population_multiplier = 1
 2.4 Building up Government Multipliers
 ---
 Government rules for game:
-```python=
+```py
 gov_api = engine_everything("nft", "APIinstances", {"_id":1}, 0)
 ```
 
@@ -124,7 +128,7 @@ Inside gov_api, property info cantain data to build up multipliers, you might ne
 
 tax contains list of taxes, and at the same time bonuses.
 
-```json=
+```json
 {
     "income_tax" : info_string['tax'][0],    # tax based on SIM price
     "police_tax" : info_string['tax'][1],    # tax to fund police
@@ -145,11 +149,11 @@ President chosen by players can decide about some game bonuses, but those are no
 President can boost education, creativity and income from Eco assets.
 So from that info to do proper math on game we need 4 things:
 * sum on tax:
-```python=
+```py
 tax = sum(info_string['tax']) - info_string['tax'][9]
 ```
 
-```python=
+```py
 ## education multiplier
 
 if info_string['tax'][2] == 5:
@@ -174,7 +178,7 @@ Now we need to modify our multipliers by numbers from technologies.
 Thanks to summary we applying bonuses only once.
 
 +5% bonus to education from ``Free Internet Connection`` and +10% from ``Open Source``:
-```python=
+```py
 if "Free Internet Connection" in summary: #2-1
     education_multiplier += 0.05
 if "Open Source" in summary: #2-3
@@ -182,7 +186,7 @@ if "Open Source" in summary: #2-3
 ```
 Changes in popularity due to technologies:
 
-```python=
+```py
 if "GMO Farming" in summary: #4-1
     if 'Farm' in summary:
         popularity -= (summary['Farm']*3)
@@ -193,7 +197,7 @@ if "Cold Fusion" in summary: #4-3
 ```
 
 Income multiplier from technology ( only highest bonus is working ):
-```python=
+```py
 if "Mining Operation - HIVE" in summary: #3-4
     income_multiplier = 1.02
 if "Mining Operation - ETH" in summary: #3-4
@@ -202,7 +206,7 @@ if "Mining Operation - BTC" in summary: #3-4
     income_multiplier = 1.06
 ```
 Check if player have full branch of tech Control, Education, Automation or Utility for population multiplier:
-```python=
+```py
 all_tech = [["Police Equipment" , "Drone Technology", "RoboCop", "Neural Network", "Voice to Skull"],
          ["Free Internet Connection", "Better Documentation Practice", "Open Source", "Free Education", "Advanced Training"],
          ["Basic Automation", "Fully Automated Brewery", "AI Technology", "Mining Operation - BTC", "Advanced Robotics"],
@@ -217,18 +221,18 @@ for listx in all_tech:
 2.6 Additional Cards effects
 ---
 Garbage Dump have negative popularity which is reversed if player have more than 10 different cards ( will be increased to 30 after update release):
-```python=
+```py
 if 'Garbage Dump' in summary and len(set(summary)) > 25:
     popularity += summary['Garbage Dump'] * 60
 ```
 
 Hospital give 1% bonus to population but only for one in assets:
-```python=
+```py
 if 'Hospital' in summary:
     population_multiplier += 0.01
 ```
 Tax reduction thanks to Law Firm:
-```python=
+```py
 if 'Law Firm' in display and tax > 0:
     tax = 0.9*tax
 ```
@@ -237,12 +241,12 @@ if 'Law Firm' in display and tax > 0:
 2.7 Applying bonuses from events
 ---
 Now from our players API we have:
-```python=
+```py
 player_api = engine_everything("nft", "APIinstances", {"properties.x":username}, 0)
 ```
 
 with two properties e and e2 to parse for events
-```python=
+```py
 e = {1: [1, 1], 2: [1, 1], 3: [1, 1]}
 e2 = {4: [1, 1], 5: [1, 1], 6: [1, 1]}
 ```
@@ -257,7 +261,7 @@ we have 6 possible events players can organize ( actually 4 in game )
 
 
 We can check them 1 by 1:
-```python=
+```py
 if e[1][1] > time.time()-(24*60*60):    ## event last for 24h
     popularity += e[1][0]               ## applying bonus for BEER fest
 
@@ -277,13 +281,13 @@ if e2[4][1] > time.time()-(24*60*60):    ## event last for 24h
 We have our base population from cards now to calculate final population we need to apply popularity effect:
 ``popularity_effect = 1+((popularity**0.70)/100)``
 
-```python=
+```py
 population = round(population*(1+((max(0, popularity)**0.70)/100)))
 ```
 
 and apply population_multiplier we calculated before ( max possible is 5%, 1% from hospital and 4 x 1% from collecting full branch of tech)
 
-```python=
+```py
 final_population = round(population_multiplier*(population*(1+((max(0, popularity)**0.70)/100))))
 ```
 
@@ -293,7 +297,7 @@ This is probably hardest part in calculations , as we need to check every single
 As starting point we have income from cards, now we going to decrease it if there is not enough workers else add bonuses.
 we need to create social_aid variable to finalize social income
 
-```python=
+```py
 social_aid = 0
 workers = 0
     ## CHECKING ALL THE ITEMS FOR ACCOUNT FOR FINAL INCOME AND UNEMPLOYMENT
@@ -341,29 +345,29 @@ for asset in my_city:
 ```
 Now we need to reduce income by social support costs( -0.2 for unemployment and costs reduced by Social Aid Offices = social_aid):
 
-```python=
+```py
 income -= max(0, round(((final_population-workers)*0.2)) - social_aid)
 ```
 At the end multiplier to finalize and taxes we took from goc_api before at the end:
-```python=
+```py
 final_income = round((1 - tax/100) * income_multiplier * income)
 ```
 if you want to display unemployment, social support costs:
-```python=
+```py
 unemployment = final_population-workers
 social_support = max(0, round(((final_population-workers)*0.2)) - social_aid))
 ```
 
 ## 2.10 Final Education and Creativity
 We already have multipliers for education adn creativity from technologies and gov, to get final numbers we just need to apply it:
-```python=
+```py
 final_education = education*education_multiplier
 final_creativity = creativity*creativity_multiplier
 ```
 
 ## 2.11 All in one
 
-```python=
+```py
 import requests
 import json
 import time
@@ -554,14 +558,14 @@ print(username, "population:", final_population, "popularity:", popularity, "inc
 ## 3.1 Chance for Training
 Training is new every 24h feature on citizens:
 First we need to grab our **gov_api** and check in taxes if Jobs Program is activated by President of the game:
-```python=
+```py
     if info_string['tax'][6] == 5:
         jobs_program = 2
     else:
         jobs_program = 1
 ``` 
 Then we check for player's Job Centers in summary and calculate chance for training:
-```python=
+```py
     if 'Job Center' in summary:
         job_centers = summary['Job Center']
     else:
@@ -577,7 +581,7 @@ If player have Advanced Training tech he have 2 draws every 24h
 
 In **player_api** you have property **tech** (remember data in API is always as string):
 
-```python=
+```py
 tech = {'t': 111, 1: [0, 0, 0, 0, 0], 2: [0, 0, 0, 0, 0], 3: [0, 0, 0, 0, 0], 4: [0, 0, 0, 0, 0]}
 ```
 
@@ -592,7 +596,7 @@ tech_string = {1: [0, 0, 0, 0, 0], 2: [0, 0, 0, 0, 0], 3: [0, 0, 0, 0, 0], 4: [0
 4 branches: Control, Education, Automation, Utility
 Player need to unlock it from key[0] to key[5], can't jump to the last one in branch before unlocking previous levels.
 
-```python=
+```py
 all_tech = [["Police Equipment" , "Drone Technology", "RoboCop", "Neural Network", "Voice to Skull"],
          ["Free Internet Connection", "Better Documentation Practice", "Open Source", "Free Education", "Advanced Training"],
          ["Basic Automation", "Fully Automated Brewery", "AI Technology", "Mining Operation - BTC", "Advanced Robotics"],
@@ -606,7 +610,7 @@ all_tech = [["Police Equipment" , "Drone Technology", "RoboCop", "Neural Network
 To discover technology player need to have Research Center and unlock technology in Tech-Tree
 
 Draw every 24h:
-```python=
+```py
 if 'Research Center' in summary:
     tech_chance = round(min(25,education/40))
 else:
@@ -620,7 +624,7 @@ To discover technology player need to have Research Center and unlock technology
 
 Technologies are minable NFT, players can trade it.
 For list of technologies for account:
-```python=
+```py
 my_tech = engine_everything("nft", "CITYinstances", {"account":username, "properties.type":"tech"}, 0)
 ```
 
@@ -630,7 +634,7 @@ Most important element of government is tax, as it decrease final income of play
 You can display it as sum and also show all the taxes > 0.
 
 First lets grab gov_api:
-```python=
+```py
 gov_api = engine_everything("nft", "APIinstances", {"_id":1}, 0)
 ```
 
@@ -652,7 +656,7 @@ tax contains list of taxes, and at the same time bonuses.
     }
 ```
 **total tax**:
-```python=
+```py
 tax = sum(info_string['tax']) - info_string['tax'][9]
 ```
 **1 :** ``"income_tax" : info_string['tax'][0],    # tax based on SIM price``
@@ -661,7 +665,7 @@ This one os based on average SIM token price in last 3 days, when price goes dow
 **2 :**``"police_tax" : info_string['tax'][1],    # tax to fund police``
 
 President by this tax funding police, and it works 4x better than without this tax:
-```python=
+```py
 if info_string['tax'][1] == 1:
     police_multiplier = 1
 else:
@@ -670,7 +674,7 @@ else:
 
 Now you can calculate police station effect on crime:
 
-```python=
+```py
 tech_police = 0
 if "Police Equipment" in summary: # 1-1
     tech_police += 1
@@ -718,7 +722,7 @@ Fully Automated Brewery technology doubles player shares in BEER production.
 
 How to calculate BEER production for today:
 
-```python=
+```py
 def beer_distribution(beer_distro):
     print("BEER DISTRIBUTION")
     ### BEER BALANCE
@@ -759,7 +763,7 @@ WEED Fest doubles player shares in production.
 
 How to calculate WEED distribution for today:
 
-```python=
+```py
 def weed_distribution(weed_distro):
     print("WEED DISTRIBUTION")
     ### WEED BALANCE
@@ -820,13 +824,13 @@ Ultra-Rare (1%):
 * Atlantis
 
 For list of backgrounds for account:
-```python=
+```py
 my_bg = engine_everything("nft", "CITYinstances", {"account":username, "properties.type":"background"}, 0)
 ```
 
 ## 3.9 Chance for background
 
-```python=
+```py
 if 'Art Gallery' in summary:
     bg_chance = round(min(25,creativity/80))
 else:
@@ -852,13 +856,13 @@ https://accounts.hive-engine.com/accountHistory?account=dcitytraining
 If you don't want to build whole math but just display basic stats refreshed every 24h:
 
 From API NFT's:
-```python=
+```py
 username = "gerber"
 player_api = engine_everything("nft", "APIinstances", {"properties.x":username}, 0)
 my_stats = ast.literal_eval(player_api[0]['properties']['info'])
 ```
 From rewards:
-```python=
+```py
 username = "gerber"
 url = "https://accounts.hive-engine.com/accountHistory?account=dcitygame"
 rewards_history = requests.request("GET", url).json()
@@ -889,7 +893,7 @@ for new release
 Players organizing events by sending tokens to **dcityevent**
 First you should check if player can organize event:
 
-```python=
+```py
 username = "gerber"
 player_api = engine_everything("nft", "APIinstances", {"properties.x":username}, 0)
 
@@ -920,7 +924,7 @@ WEED Fest - 75 WEED
 ## 4.3 Governments actions (voting, president decisions)
 
 Check Registered candidates:
-```python=
+```py
 cands = find_one({"_id":3}, "API")
 sum_cands = {}
 for key in cands[0]['properties']:
@@ -931,13 +935,13 @@ print(sum_cands)
 ```
 
 Check actual president:
-```python=
+```py
 gov_api = engine_everything("nft", "APIinstances", {"_id":1}, 0)
 president = gov_api[0]['properties']['gov']
 ```
 
 How to build custom_json for voting:
-```json=
+```json
 id = "dcity"
 json_data = {"action": "gov_vote", "data": "user_to_vote_on"}
 ```
@@ -948,11 +952,11 @@ How to build custom_json for president decisions
 ``"data": "basic tax"``
 posible decisions: "police tax", "edu tax", "art tax", "war tax", "eco tax", "job tax", "basic tax"
 ``"value": 0`` 1-20 for "basic tax" 0 for rest
-```json=
+```json
 id = "dcity"
 json_data = {"action": "gov_decision", "data": "basic tax", "value": 12}
 ```
-```json=
+```json
 id = "dcity"
 json_data = {"action": "gov_decision", "data": "edu tax", "value": 0}
 ```
@@ -964,7 +968,7 @@ json_data = {"action": "gov_decision", "data": "edu tax", "value": 0}
 
 In **player_api** you have property **tech** (remember data in API is always as string):
 
-```python=
+```py
 tech = {'t': 111, 1: [0, 0, 0, 0, 0], 2: [0, 0, 0, 0, 0], 3: [0, 0, 0, 0, 0], 4: [0, 0, 0, 0, 0]}
 ```
 
@@ -972,7 +976,7 @@ t - is time of last initial research and base for cooldown
 After unlocking technology player have 36 hours or 24 hours(with Better Documentation Practice tech) cooldown before he can unlock another one.
 
 Let's check if player have that tech:
-```python=
+```py
 my_tech = engine_everything("nft", "CITYinstances", {"account":username, "properties.type":"tech"}, 0)
 summary_tech = {}
 for tech in my_tech:
@@ -988,7 +992,7 @@ else:
 ```
 
 If you already have all the data from making calculations it can be easier:
-```python=
+```py
 
 if 'Better Documentation Practice' in summary:
     tech_cd = 24
@@ -998,7 +1002,7 @@ else:
 
 Now you can check if player can unlock next technology or how much time left before he can do it:
 
-```python=
+```py
 player_api = engine_everything("nft", "APIinstances", {"properties.x":username}, 0)
 tech_string = ast.literal_eval(player_api[0]['properties']['tech'])
 
@@ -1019,7 +1023,7 @@ Tier 5 - 1000 SIM
 To unlock technology player sends SIM to **dcitygame** with memo: branch-tier for example 1-1, 2-3, 4-1 etc
 
 Let's build some code:
-```python=
+```py
 unlock_prices = {1:30, 2:60, 3:150, 4:500, 5:1000}
 
 all_tech = [["Police Equipment" , "Drone Technology", "RoboCop", "Neural Network", "Voice to Skull"],
@@ -1048,7 +1052,7 @@ player gerber unlocked all tech for 4 branch
 
 ## 4.5 All in one tech-tree
 
-```python=
+```py
 import json
 import requests
 import time
@@ -1120,7 +1124,7 @@ except:
 ## 4.6 Picking background
 
 First you can check backgrounds for a player:
-```python=
+```py
 my_bg = engine_everything("nft", "CITYinstances", {"account":username, "properties.type":"background"}, 0)
 ```
 
@@ -1134,10 +1138,10 @@ json_data = {"action": "pick_bg", "data": "picked_background"
 ===
 
 ## 5.1 Open Orders
-```python=
+```py
 open_orders = engine_everything("nftmarket", "CITYsellBook", {}, 0)
 ```
 ## 5.2 24h Trade Hsitory
-```python=
+```py
 tradehistory24h = engine_everything("nftmarket", "CITYtradesHistory", {}, 0)
 ```
