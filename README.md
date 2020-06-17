@@ -8,7 +8,7 @@ dCity Dev Documentation
 dCity Dev Documentation
 ===
 
-[1 General Information][https://github.com/gerberox/dcity/blob/master/README.md#1-general-information]
+[1 General Information](https://github.com/gerberox/dcity/blob/master/README.md#1-general-information)
 
 ## 1 General Information
 
