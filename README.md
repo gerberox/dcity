@@ -1,11 +1,4 @@
----
-dCity Dev Documentation
----
-
 ![](https://i.imgur.com/FtbtTn5.png)
-
-
-dCity Dev Documentation
 ===
 
 [1 General Information](https://github.com/gerberox/dcity/blob/master/README.md#1-general-information)
