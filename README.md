@@ -1,5 +1,5 @@
 ---
-title: 'dCity Dev Documentation'
+dCity Dev Documentation
 ---
 
 ![](https://i.imgur.com/FtbtTn5.png)
