@@ -5,24 +5,12 @@ dCity Dev Documentation
 ![](https://i.imgur.com/FtbtTn5.png)
 
 
-1 dCity Dev Documentation
+dCity Dev Documentation
 ===
 
-[TOC]
+[1 General Information][https://github.com/gerberox/dcity/blob/master/README.md#1-general-information]
 
-## 1.1 ChangesLog
-
-18-05-2020 - Decrease on education if not enough workers 2.9 2.11
-
-18-05-2020 - BEER and WEED production 3.6 and 3.7
-
-18-05-2020 - Simplified Police Tax 3.5
-
-17-05-2020 - 3.10 dCity logs
-
-17-05-2020 - Law Firm effect in 2.6 + 2.11 Card Bonuses
-
-## 1.2 General Information
+## 1 General Information
 
 All game data is stored on hive-engine, so you will need to query engine to build up your interface/application. Basic py example:
 
